@@ -54,12 +54,26 @@
 - (void) textFieldDidEndEditing:(UITextField *)aTextField {
     if (aTextField == textField) {
         [self.textField resignFirstResponder];
-        [self.notificationView setTextLabel:self.textField.text animated:YES];
+        [self.notificationView setTextLabel:self.textField.text animated:NO];
     }
     else {
         [self.secondaryTextField resignFirstResponder];
-        [self.notificationView setSecondaryTextLabel:self.secondaryTextField.text animated:YES];
+        [self.notificationView setSecondaryTextLabel:self.secondaryTextField.text animated:NO];
     }
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)aTextField
+{
+    if (aTextField == textField) {
+        [self.textField resignFirstResponder];
+        [self.notificationView setTextLabel:self.textField.text animated:NO];
+    }
+    else {
+        [self.secondaryTextField resignFirstResponder];
+        [self.notificationView setSecondaryTextLabel:self.secondaryTextField.text animated:NO];
+    }
+
+    return YES;
 }
 
 - (void)dealloc {
