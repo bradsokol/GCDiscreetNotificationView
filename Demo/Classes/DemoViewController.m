@@ -29,6 +29,9 @@
 }
 
 - (void) show {
+    [self.textField resignFirstResponder];
+    [self.secondaryTextField resignFirstResponder];
+    
     [self.notificationView show:YES];
 }
 
@@ -48,7 +51,7 @@
     [self.notificationView setPresentationMode:self.topBottomSwitch.on ?  GCDiscreetNotificationViewPresentationModeTop : GCDiscreetNotificationViewPresentationModeBottom];
 }
 
-- (BOOL) textFieldShouldReturn:(UITextField *)aTextField {
+- (void) textFieldDidEndEditing:(UITextField *)aTextField {
     if (aTextField == textField) {
         [self.textField resignFirstResponder];
         [self.notificationView setTextLabel:self.textField.text animated:YES];
@@ -57,7 +60,6 @@
         [self.secondaryTextField resignFirstResponder];
         [self.notificationView setSecondaryTextLabel:self.secondaryTextField.text animated:YES];
     }
-    return NO;
 }
 
 - (void)dealloc {
