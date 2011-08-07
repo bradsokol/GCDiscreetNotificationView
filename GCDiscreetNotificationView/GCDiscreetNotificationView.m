@@ -126,7 +126,6 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
         [self setNeedsDisplay];
     }
 
-#warning Temp code
     self.secondaryLabel.frame = CGRectMake(GCDiscreetNotificationViewBorderSize, 15, width, 15);
     if (self.activityIndicator == nil) self.label.frame = CGRectMake(GCDiscreetNotificationViewBorderSize, 0, width, 15);
     else {
