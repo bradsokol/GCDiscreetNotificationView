@@ -17,6 +17,7 @@ NSString* const GCHideAnimation = @"hide";
 NSString* const GCChangeProprety = @"changeProprety";
 
 NSString* const GCDiscreetNotificationViewTextKey = @"text";
+NSString* const GCDiscreetNotificationViewSecondaryTextKey = @"secondaryText";
 NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 
 @interface GCDiscreetNotificationView ()
@@ -33,7 +34,7 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 - (void) animationDidStop:(NSString *)animationID finished:(BOOL) finished context:(void *) context;
 
 - (void) placeOnGrid;
-- (void) changePropretyAnimatedWithKeys:(NSArray*) keys values:(NSArray*) values;
+- (void) changePropertyAnimatedWithKeys:(NSArray*) keys values:(NSArray*) values;
 
 @end
 
@@ -43,24 +44,38 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 @synthesize presentationMode;
 @synthesize view;
 @synthesize label;
+@synthesize secondaryLabel;
 @synthesize animating, animationDict;
 
 #pragma mark -
 #pragma mark Init and dealloc
 
 - (id) initWithText:(NSString *)text inView:(UIView *)aView {
-    return [self initWithText:text showActivity:NO inView:aView];
+    return [self initWithText:text secondaryText:nil inView:aView];
 }
 
-- (id)initWithText:(NSString*) text showActivity:(BOOL) activity inView:(UIView*) aView {
-    return [self initWithText:text showActivity:activity inPresentationMode:GCDiscreetNotificationViewPresentationModeTop inView:aView];
+- (id) initWithText:(NSString *)text showActivity:(BOOL)activity inView:(UIView *)aView {
+    return [self initWithText:text secondaryText:nil showActivity:activity inView:aView];
 }
 
-- (id) initWithText:(NSString *)text showActivity:(BOOL)activity 
+- (id) initWithText:(NSString *)text showActivity:(BOOL)activity inPresentationMode:(GCDiscreetNotificationViewPresentationMode) aPresentationMode inView:(UIView *)aView {
+    return [self initWithText:text secondaryText:nil showActivity:activity inPresentationMode:aPresentationMode inView:aView];
+}
+
+- (id) initWithText:(NSString *)text secondaryText:(NSString *)secondaryText inView:(UIView *)aView {
+    return [self initWithText:text secondaryText:secondaryText showActivity:NO inView:aView];
+}
+
+- (id)initWithText:(NSString*) text secondaryText:(NSString *)secondaryText showActivity:(BOOL) activity inView:(UIView*) aView {
+    return [self initWithText:text secondaryText:secondaryText showActivity:activity inPresentationMode:GCDiscreetNotificationViewPresentationModeTop inView:aView];
+}
+
+- (id) initWithText:(NSString *)text secondaryText:(NSString *)secondaryText showActivity:(BOOL)activity 
  inPresentationMode:(GCDiscreetNotificationViewPresentationMode)aPresentationMode inView:(UIView *)aView {
     if ((self = [super initWithFrame:CGRectZero])) {
         self.view = aView;
         self.textLabel = text;
+        self.secondaryTextLabel = secondaryText;
         self.showActivity = activity;
         self.presentationMode = aPresentationMode;
         
@@ -84,6 +99,9 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
     [label release];
     label = nil;
     
+    [secondaryLabel release];
+    secondaryLabel = nil;
+    
     [activityIndicator release];
     activityIndicator = nil;
     
@@ -100,18 +118,21 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
     CGFloat maxLabelWidth = self.view.frame.size.width - self.activityIndicator.frame.size.width * withActivity - baseWidth;
     CGSize maxLabelSize = CGSizeMake(maxLabelWidth, GCDiscreetNotificationViewHeight);
     CGFloat textSizeWidth = (self.textLabel != nil) ? [self.textLabel sizeWithFont:self.label.font constrainedToSize:maxLabelSize lineBreakMode:UILineBreakModeTailTruncation].width : 0;
+    CGFloat secondaryTextSizeWidth = (self.secondaryTextLabel != nil) ? [self.secondaryTextLabel sizeWithFont:self.secondaryLabel.font constrainedToSize:maxLabelSize lineBreakMode:UILineBreakModeTailTruncation].width : 0;
     
+    CGFloat width = (textSizeWidth > secondaryTextSizeWidth ? textSizeWidth : secondaryTextSizeWidth);
     CGFloat activityIndicatorWidth = (self.activityIndicator != nil) ? self.activityIndicator.frame.size.width : 0;
-    CGRect bounds = CGRectMake(0, 0, baseWidth + textSizeWidth + activityIndicatorWidth, GCDiscreetNotificationViewHeight);
+    CGRect bounds = CGRectMake(0, 0, baseWidth + width + activityIndicatorWidth , GCDiscreetNotificationViewHeight);
     if (!CGRectEqualToRect(self.bounds, bounds)) { //The bounds have changed...
         self.bounds = bounds;
         [self setNeedsDisplay];
     }
-    
-    if (self.activityIndicator == nil) self.label.frame = CGRectMake(GCDiscreetNotificationViewBorderSize, 0, textSizeWidth, GCDiscreetNotificationViewHeight);
+
+    self.secondaryLabel.frame = CGRectMake(GCDiscreetNotificationViewBorderSize, 15, width, 15);
+    if (self.activityIndicator == nil) self.label.frame = CGRectMake(GCDiscreetNotificationViewBorderSize, 0, width, 15);
     else {
         self.activityIndicator.frame = CGRectMake(GCDiscreetNotificationViewBorderSize, GCDiscreetNotificationViewPadding, self.activityIndicator.frame.size.width, self.activityIndicator.frame.size.height);
-        self.label.frame = CGRectMake(GCDiscreetNotificationViewBorderSize + GCDiscreetNotificationViewPadding + self.activityIndicator.frame.size.width, 0, textSizeWidth, GCDiscreetNotificationViewHeight);
+        self.label.frame = CGRectMake(GCDiscreetNotificationViewBorderSize + GCDiscreetNotificationViewPadding + self.activityIndicator.frame.size.width, 0, width, 15);
     }
     
     [self placeOnGrid];
@@ -257,6 +278,15 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
     [self setNeedsLayout];
 }
 
+- (NSString *) secondaryTextLabel {
+    return self.secondaryLabel.text;
+}
+
+- (void) setSecondaryTextLabel:(NSString *) aText {
+    self.secondaryLabel.text = aText;
+    [self setNeedsLayout];
+}
+
 - (UILabel *)label {
     if (label == nil) {
         label = [[UILabel alloc] init];
@@ -267,10 +297,28 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
         label.shadowOffset = CGSizeMake(0, 1);
         label.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
         label.backgroundColor = [UIColor clearColor];
+        label.textAlignment = UITextAlignmentCenter;
         
         [self addSubview:label];
     }
     return label;
+}
+
+- (UILabel *)secondaryLabel {
+    if (secondaryLabel == nil) {
+        secondaryLabel = [[UILabel alloc] init];
+        
+        secondaryLabel.font = [UIFont systemFontOfSize:12.0];
+        secondaryLabel.textColor = [UIColor whiteColor];
+        secondaryLabel.shadowColor = [UIColor blackColor];
+        secondaryLabel.shadowOffset = CGSizeMake(0, 1);
+        secondaryLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+        secondaryLabel.backgroundColor = [UIColor clearColor];
+        secondaryLabel.textAlignment = UITextAlignmentCenter;
+        
+        [self addSubview:secondaryLabel];
+    }
+    return secondaryLabel;
 }
 
 - (BOOL) showActivity {
@@ -349,15 +397,23 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 
 - (void) setTextLabel:(NSString *)aText animated:(BOOL)animated {
     if (animated && (self.showing || self.animating)) {
-        [self changePropretyAnimatedWithKeys:[NSArray arrayWithObject:GCDiscreetNotificationViewTextKey]
+        [self changePropertyAnimatedWithKeys:[NSArray arrayWithObject:GCDiscreetNotificationViewTextKey]
                                       values:[NSArray arrayWithObject:aText]];
     }
     else self.textLabel = aText;
 }
 
+- (void) setSecondaryTextLabel:(NSString *)aText animated:(BOOL)animated {
+    if (animated && (self.showing || self.animating)) {
+        [self changePropertyAnimatedWithKeys:[NSArray arrayWithObject:GCDiscreetNotificationViewSecondaryTextKey]
+                                      values:[NSArray arrayWithObject:aText]];
+    }
+    else self.secondaryTextLabel = aText;
+}
+
 - (void) setShowActivity:(BOOL)activity animated:(BOOL)animated {
     if (animated && (self.showing || self.animating)) {
-        [self changePropretyAnimatedWithKeys:[NSArray arrayWithObject:GCDiscreetNotificationViewActivityKey]
+        [self changePropertyAnimatedWithKeys:[NSArray arrayWithObject:GCDiscreetNotificationViewActivityKey]
                                       values:[NSArray arrayWithObject:[NSNumber numberWithBool:activity]]];
     }
     else self.showActivity = activity;
@@ -365,7 +421,7 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 
 - (void) setTextLabel:(NSString *)aText andSetShowActivity:(BOOL)activity animated:(BOOL)animated {
     if (animated && (self.showing || self.animating)) {
-        [self changePropretyAnimatedWithKeys:[NSArray arrayWithObjects:GCDiscreetNotificationViewTextKey, GCDiscreetNotificationViewActivityKey, nil]
+        [self changePropertyAnimatedWithKeys:[NSArray arrayWithObjects:GCDiscreetNotificationViewTextKey, GCDiscreetNotificationViewActivityKey, nil]
                                       values:[NSArray arrayWithObjects:aText, [NSNumber numberWithBool:activity], nil]];
     }
     else {
@@ -386,7 +442,7 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
     self.frame = frame;
 }
 
-- (void) changePropretyAnimatedWithKeys:(NSArray*) keys values:(NSArray*) values {
+- (void) changePropertyAnimatedWithKeys:(NSArray*) keys values:(NSArray*) values {
     NSDictionary* newDict = [NSDictionary dictionaryWithObjects:values forKeys:keys];
     
     if (self.animationDict == nil) {

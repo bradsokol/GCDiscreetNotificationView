@@ -15,6 +15,7 @@
 @property (nonatomic, retain) IBOutlet UISwitch *activitySwitch;
 @property (nonatomic, retain) IBOutlet UISwitch *topBottomSwitch;
 @property (nonatomic, retain) IBOutlet UITextField *textField;
+@property (nonatomic, retain) IBOutlet UITextField *secondaryTextField;
 @property (nonatomic, retain) GCDiscreetNotificationView *notificationView;
 
 - (IBAction) changeActivity:(id) sender;
