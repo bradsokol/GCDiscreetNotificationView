@@ -40,10 +40,8 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 
 @implementation GCDiscreetNotificationView
 
-@synthesize activityIndicator;
-@synthesize presentationMode;
+@synthesize activityIndicator, presentationMode, label;
 @synthesize view;
-@synthesize label;
 @synthesize secondaryLabel;
 @synthesize animating, animationDict;
 
@@ -208,6 +206,8 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 }
 
 - (void) show:(BOOL)animated name:(NSString*) name {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(hideAnimated) object:nil];
+
     [self showOrHide:NO animated:animated name:name];
 }
 
@@ -343,16 +343,19 @@ NSString* const GCDiscreetNotificationViewActivityKey = @"activity";
 }
 
 - (void) setView:(UIView *) aView {
-    if (view != aView) {
+    if (self.view != aView) {
         [self retain];
         [self removeFromSuperview];
         
-        view = aView;
-        [view addSubview:self];
+        [aView addSubview:self];
         [self setNeedsLayout];
         
         [self release];
     }
+}
+
+- (UIView *)view {
+    return self.superview;
 }
 
 - (void) setPresentationMode:(GCDiscreetNotificationViewPresentationMode) newPresentationMode {
