@@ -14,6 +14,7 @@
 @synthesize activitySwitch;
 @synthesize topBottomSwitch;
 @synthesize textField;
+@synthesize secondaryTextField;
 @synthesize notificationView;
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
@@ -21,12 +22,16 @@
     [super viewDidLoad];
     
     notificationView = [[GCDiscreetNotificationView alloc] initWithText:self.textField.text 
-									     showActivity:self.activitySwitch.on 
-								     inPresentationMode:self.topBottomSwitch.on ?  GCDiscreetNotificationViewPresentationModeTop : GCDiscreetNotificationViewPresentationModeBottom
-										     inView:self.view];
+                                                          secondaryText:self.secondaryTextField.text
+                                                           showActivity:self.activitySwitch.on 
+                                                     inPresentationMode:self.topBottomSwitch.on ?  GCDiscreetNotificationViewPresentationModeTop : GCDiscreetNotificationViewPresentationModeBottom
+                                                                 inView:self.view];
 }
 
 - (void) show {
+    [self.textField resignFirstResponder];
+    [self.secondaryTextField resignFirstResponder];
+    
     [self.notificationView show:YES];
 }
 
@@ -46,10 +51,29 @@
     [self.notificationView setPresentationMode:self.topBottomSwitch.on ?  GCDiscreetNotificationViewPresentationModeTop : GCDiscreetNotificationViewPresentationModeBottom];
 }
 
-- (BOOL) textFieldShouldReturn:(UITextField *)aTextField {
-    [self.textField resignFirstResponder];
-    [self.notificationView setTextLabel:self.textField.text animated:YES];
-    return NO;
+- (void) textFieldDidEndEditing:(UITextField *)aTextField {
+    if (aTextField == textField) {
+        [self.textField resignFirstResponder];
+        [self.notificationView setTextLabel:self.textField.text animated:NO];
+    }
+    else {
+        [self.secondaryTextField resignFirstResponder];
+        [self.notificationView setSecondaryTextLabel:self.secondaryTextField.text animated:NO];
+    }
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)aTextField
+{
+    if (aTextField == textField) {
+        [self.textField resignFirstResponder];
+        [self.notificationView setTextLabel:self.textField.text animated:NO];
+    }
+    else {
+        [self.secondaryTextField resignFirstResponder];
+        [self.notificationView setSecondaryTextLabel:self.secondaryTextField.text animated:NO];
+    }
+
+    return YES;
 }
 
 - (void)dealloc {
@@ -59,6 +83,8 @@
     topBottomSwitch = nil;
     [textField release];
     textField = nil;
+    [secondaryTextField release];
+    secondaryTextField = nil;
     [notificationView release];
     notificationView = nil;
     
